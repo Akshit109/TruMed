@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>500 - Internal Server Error</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/landing.css') }}">
+    <style>
+        body {
+            background: linear-gradient(135deg, #2b2d42, #8d99ae);
+            color: white;
+            font-family: 'Poppins', sans-serif;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        h1 {
+            font-size: 6rem;
+            margin-bottom: 10px;
+            color: #edf2f4;
+        }
+        p {
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+        }
+        a {
+            background: #ef233c;
+            color: white;
+            text-decoration: none;
+            padding: 12px 25px;
+            border-radius: 30px;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+        a:hover {
+            background: #d90429;
+        }
+        .emoji {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div>
+        <div class="emoji">💥</div>
+        <h1>500</h1>
+        <p>Something went wrong on our end. Please try again later.</p>
+        <a href="{{ url_for('landing') }}">Go Back Home</a>
+    </div>
+</body>
+</html>

@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prediction Results - TruMed</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
+            min-height: 100vh;
+            padding-bottom: 50px;
+        }
+
+        .navbar {
+            background: transparent;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1.2rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .logo img {
+            height: 40px;
+            width: auto;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: #333;
+            font-weight: 500;
+            transition: color 0.3s, text-shadow 0.3s;
+            position: relative;
+        }
+
+        .nav-links a:hover {
+            color: #667eea;
+            text-shadow: 0 0 10px rgba(102, 126, 234, 0.5);
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: #667eea;
+            transition: width 0.3s;
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        .btn-logout {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: rgb(0, 0, 0) !important;
+            padding: 0.6rem 1.5rem;
+            border-radius: 25px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* .btn-logout::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn-logout:hover::before {
+            left: 100%;
+        }
+
+        .btn-logout:hover {
+            background: linear-gradient(135deg, #d63384 0%, #c5306c 100%);
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: 0 8px 25px rgba(245, 87, 108, 0.4);
+        } */
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .results-container {
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .results-container > h1 {
+            text-align: center;
+            color: #333;
+            font-size: 2.5rem;
+            margin-bottom: 2rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .result-card {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .result-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .main-result {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            color: #000000;
+            text-align: center;
+            padding: 3rem 2rem;
+        }
+
+        .main-result h2 {
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+            font-weight: 800;
+            color: #333;
+        }
+
+        .confidence-bar {
+            background: rgba(255, 255, 255, 0.5);
+            height: 30px;
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 1.5rem 0;
+            position: relative;
+            border: 2px solid black;
+        }
+
+        .confidence-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%);
+            border-radius: 15px;
+            transition: width 1s ease-out;
+            box-shadow: 0 0 20px rgba(79, 172, 254, 0.6);
+            animation: fillBar 1.5s ease-out;
+        }
+
+        @keyframes fillBar {
+            from {
+                width: 0 !important;
+            }
+        }
+
+        .confidence-text {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin: 1rem 0;
+            color: #333;
+        }
+
+        .risk-badge {
+            display: inline-block;
+            padding: 0.7rem 1.8rem;
+            border-radius: 25px;
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin-top: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .risk-low {
+            background: #10b981;
+            color: white;
+        }
+
+        .risk-medium {
+            background: #f59e0b;
+            color: white;
+        }
+
+        .risk-high {
+            background: #ef4444;
+            color: white;
+        }
+
+        .result-card h3 {
+            color: #667eea;
+            font-size: 1.6rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .section-desc {
+            color: #666;
+            margin-bottom: 1.5rem;
+            font-size: 1.05rem;
+        }
+
+        .factors-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .factor-item {
+            display: grid;
+            grid-template-columns: 150px 1fr 80px;
+            gap: 1rem;
+            align-items: center;
+            padding: 0.8rem;
+            background: #f8f9ff;
+            border-radius: 10px;
+            transition: background 0.3s;
+        }
+
+        .factor-item:hover {
+            background: #eef1ff;
+        }
+
+        .factor-name {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .factor-bar {
+            background: #e0e7ff;
+            height: 12px;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .factor-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            border-radius: 6px;
+            transition: width 1s ease-out;
+            animation: fillFactor 1.2s ease-out;
+        }
+
+        @keyframes fillFactor {
+            from {
+                width: 0 !important;
+            }
+        }
+
+        .factor-score {
+            font-weight: 700;
+            color: #667eea;
+            text-align: right;
+        }
+
+        .suggestions-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .suggestions-list li {
+            padding: 1rem 1rem 1rem 3rem;
+            background: linear-gradient(90deg, #f0f4ff 0%, #ffffff 100%);
+            border-left: 4px solid #667eea;
+            border-radius: 8px;
+            position: relative;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .suggestions-list li:hover {
+            transform: translateX(5px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+        }
+
+        .suggestions-list li::before {
+            content: '✓';
+            position: absolute;
+            left: 1rem;
+            color: #667eea;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .disclaimer {
+            margin-top: 2rem;
+            padding: 1.2rem;
+            background: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            border-radius: 8px;
+            color: #92400e;
+            font-weight: 500;
+        }
+
+        .result-actions {
+            display: flex;
+            gap: 1.5rem;
+            justify-content: center;
+            margin-top: 2rem;
+        }
+
+        .btn-primary, .btn-secondary {
+            padding: 1rem 2.5rem;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.05rem;
+            transition: all 0.3s;
+            text-align: center;
+            min-width: 180px;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(79, 172, 254, 0.4);
+            border: none;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(79, 172, 254, 0.6);
+            background: linear-gradient(135deg, #3b9be6 0%, #00d9e6 100%);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.95);
+            color: #4facfe;
+            border: 2px solid #4facfe;
+        }
+
+        .btn-secondary:hover {
+            background: #4facfe;
+            color: white;
+            transform: translateY(-3px);
+            box-shadow: 0 4px 15px rgba(79, 172, 254, 0.4);
+        }
+
+        @media (max-width: 768px) {
+            .nav-container {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .nav-links {
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 1rem;
+            }
+
+            .results-container > h1 {
+                font-size: 2rem;
+            }
+
+            .main-result h2 {
+                font-size: 1.8rem;
+            }
+
+            .factor-item {
+                grid-template-columns: 1fr;
+                gap: 0.5rem;
+            }
+
+            .factor-score {
+                text-align: left;
+            }
+
+            .result-actions {
+                flex-direction: column;
+            }
+
+            .btn-primary, .btn-secondary {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <img src="/static/images/dev2.png" alt="TruMed Logo">
+            </div>
+            <div class="nav-links">
+                <a href="{{ url_for('dashboard') }}">Dashboard</a>
+                <a href="{{ url_for('prediction') }}">New Prediction</a>
+                <a href="{{ url_for('history') }}">History</a>
+                <a href="{{ url_for('logout') }}" class="btn-logout">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="results-container">
+            <h1>🎯 Prediction Results</h1>
+            
+            <div class="result-card main-result">
+                <h2>{{ result.disease }}</h2>
+                <div class="confidence-bar">
+                    <div class="confidence-fill" style="width: {{ "%.2f"|format(result.confidence) }}%"></div>
+                </div>
+                <p class="confidence-text">XAI Confidence: {{ "%.2f"|format(result.confidence) }}%</p>
+                <span class="risk-badge risk-{{ result.risk_level.lower() }}">{{ result.risk_level }} Risk</span>
+            </div>
+
+            <div class="result-card">
+                <h3>💡 Explainable AI - Contributing Factors</h3>
+                <p class="section-desc">These symptoms most influenced this prediction:</p>
+                <div class="factors-list">
+                    {% for factor in result.contributing_factors %}
+                        <div class="factor-item">
+                            <span class="factor-name">{{ factor.symptom }}</span>
+                            <div class="factor-bar">
+                                <div class="factor-fill" style="width: {{ "%.2f"|format(factor.importance) }}%"></div>
+                            </div>
+                            <span class="factor-score">{{ "%.2f"|format(factor.importance) }}%</span>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="result-card">
+                <h3>💊 Recommendations</h3>
+                <ul class="suggestions-list">
+                    {% for suggestion in result.suggestions %}
+                        <li>{{ suggestion }}</li>
+                    {% endfor %}
+                </ul>
+                <p class="disclaimer">⚠️ This is an AI prediction for educational purposes. Always consult a qualified healthcare professional for medical advice.</p>
+            </div>
+
+            <div class="result-actions">
+                <a href="{{ url_for('prediction') }}" class="btn-primary">New Assessment</a>
+                <a href="{{ url_for('history') }}" class="btn-primary">View History</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

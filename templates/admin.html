@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - TruMed</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .navbar {
+            background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+        }
+
+        .admin-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .stat-box {
+            background: #fff;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, .08);
+            text-align: center;
+        }
+
+        .stat-box h3 {
+            font-size: 2.5rem;
+            color: #dc2626;
+            margin-bottom: .5rem;
+        }
+
+        .stat-box p {
+            color: #666;
+            font-size: 1rem;
+        }
+
+        .search-section {
+            margin: 2rem 0;
+        }
+
+        #searchInput {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: border-color .3s;
+        }
+
+        #searchInput:focus {
+            outline: none;
+            border-color: #dc2626;
+        }
+
+        .users-table {
+            background: #fff;
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, .08);
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: #f8f9fa;
+        }
+
+        th,
+        td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        th {
+            font-weight: 600;
+            color: #333;
+        }
+
+        tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+        .actions {
+            display: flex;
+            gap: .5rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .btn-small {
+            padding: .4rem .8rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: .85rem;
+            transition: all .3s;
+            white-space: nowrap;
+        }
+
+        .btn-warning {
+            background: #fbbf24;
+            color: #fff;
+        }
+
+        .btn-warning:hover {
+            background: #f59e0b;
+        }
+
+        .btn-danger {
+            background: #dc2626;
+            color: #fff;
+        }
+
+        .btn-danger:hover {
+            background: #991b1b;
+        }
+
+        .select-small {
+            padding: .4rem;
+            border: 1px solid #e0e0e0;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: .85rem;
+        }
+
+        .badge {
+            padding: .3rem 1rem;
+            border-radius: 20px;
+            font-size: .85rem;
+            font-weight: bold;
+            display: inline-block;
+        }
+
+        .badge-admin {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .badge-user {
+            background: #dbeafe;
+            color: #2563eb;
+        }
+
+        .alert {
+            margin: 1rem 0;
+            padding: .8rem 1rem;
+            border-radius: 8px;
+        }
+
+        .alert-success {
+            background: #ecfdf5;
+            color: #065f46;
+        }
+
+        .alert-error {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .alert-info {
+            background: #eff6ff;
+            color: #1e3a8a;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            inset: 0;
+            background: rgba(0, 0, 0, .5);
+            animation: fadeIn .3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0
+            }
+
+            to {
+                opacity: 1
+            }
+        }
+
+        .modal-content {
+            background: #fff;
+            margin: 10% auto;
+            padding: 2rem;
+            border-radius: 15px;
+            max-width: 500px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, .3);
+            animation: slideUp .3s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(50px);
+                opacity: 0
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1
+            }
+        }
+
+        .close {
+            float: right;
+            font-size: 2rem;
+            cursor: pointer;
+            color: #999;
+            transition: color .3s;
+            line-height: 1;
+            background: none;
+            border: none;
+        }
+
+        .close:hover {
+            color: #333;
+        }
+
+        .modal-content h2 {
+            margin-bottom: 1.5rem;
+            color: #333;
+            clear: both;
+        }
+
+        .modal-content input {
+            width: 100%;
+            padding: .8rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            font-size: 1rem;
+        }
+
+        .modal-content input:focus {
+            outline: none;
+            border-color: #dc2626;
+        }
+
+        .modal-content .btn-primary {
+            width: 100%;
+            padding: .8rem;
+            background: #dc2626;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all .3s;
+        }
+
+        .modal-content .btn-primary:hover {
+            background: #991b1b;
+        }
+
+        .modal-content .btn-secondary {
+            width: 100%;
+            padding: .8rem;
+            background: #6b7280;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            margin-top: .5rem;
+            transition: all .3s;
+        }
+
+        .modal-content .btn-secondary:hover {
+            background: #4b5563;
+        }
+
+        #deleteMessage {
+            margin-bottom: 1.5rem;
+            color: #666;
+            font-size: 1rem;
+        }
+
+        @media (max-width:768px) {
+            .actions {
+                flex-direction: column;
+                align-items: stretch
+            }
+
+            .btn-small {
+                width: 100%
+            }
+
+            table {
+                font-size: .85rem
+            }
+
+            th,
+            td {
+                padding: .5rem
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo">🏥 TruMed Admin</div>
+            <div class="nav-links">
+                <a href="{{ url_for('admin_panel') }}" class="active">Admin Panel</a>
+                <a href="{{ url_for('logout') }}" class="btn-logout">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container" aria-live="polite">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category }}">{{ message }}</div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+
+        <div class="admin-header">
+            <h1>🛡️ Admin Dashboard</h1>
+            <div class="admin-stats" role="region" aria-label="Statistics">
+                <div class="stat-box">
+                    <h3>{{ total_users }}</h3>
+                    <p>Total Users</p>
+                </div>
+                <div class="stat-box">
+                    <h3>{{ total_predictions }}</h3>
+                    <p>Total Predictions</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="search-section">
+            <label for="searchInput" class="sr-only">Search users</label>
+            <input type="text" id="searchInput" placeholder="🔍 Search users by name, email, or phone..."
+                onkeyup="searchUsers()" aria-describedby="searchHelp" autocomplete="off" inputmode="search">
+            <div id="searchHelp" class="sr-only">Type to filter rows in the users table.</div>
+        </div>
+
+        <div class="users-table">
+            <table aria-describedby="tableDesc">
+                <caption id="tableDesc" class="sr-only">Users list with actions to change password, change account type,
+                    or delete account.</caption>
+                <thead>
+                    <tr>
+                        <th scope="col">ID</th>
+                        <th scope="col">Name</th>
+                        <th scope="col">Email</th>
+                        <th scope="col">Phone</th>
+                        <th scope="col">Gender</th>
+                        <th scope="col">Account Type</th>
+                        <th scope="col">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="usersTableBody">
+                    {% for user in users %}
+                    <tr>
+                        <td>{{ user.id }}</td>
+                        <td>{{ user.name }}</td>
+                        <td>{{ user.email }}</td>
+                        <td>{{ user.phone }}</td>
+                        <td>{{ user.gender }}</td>
+                        <td>
+                            <span class="badge badge-{{ user.account_type }}">{{ user.account_type }}</span>
+                        </td>
+                        <td class="actions">
+                            <button type="button" onclick="openPasswordModal({{ user.id }}, '{{ user.name }}')"
+                                class="btn-small btn-warning" aria-haspopup="dialog" aria-controls="passwordModal"
+                                aria-expanded="false">
+                                Change Password
+                            </button>
+
+                            <form method="POST" action="{{ url_for('change_account_type', user_id=user.id) }}"
+                                style="display:inline;">
+                                {{ form.hidden_tag() }}
+                                <label for="acct-{{ user.id }}" class="sr-only">Account type for {{ user.name }}</label>
+                                <select id="acct-{{ user.id }}" name="account_type" class="select-small"
+                                    onchange="confirmAccountTypeChange(this, '{{ user.name }}')">
+                                    <option value="user" {% if user.account_type=='user' %}selected{% endif %}>User
+                                    </option>
+                                    <option value="admin" {% if user.account_type=='admin' %}selected{% endif %}>Admin
+                                    </option>
+                                </select>
+                            </form>
+
+                            <button type="button" onclick="openDeleteModal({{ user.id }}, '{{ user.name }}')"
+                                class="btn-small btn-danger" aria-haspopup="dialog" aria-controls="deleteModal"
+                                aria-expanded="false">
+                                Delete
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Change Password Modal -->
+    <div id="passwordModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="passwordTitle"
+        aria-hidden="true">
+        <div class="modal-content">
+            <button class="close" aria-label="Close" onclick="closePasswordModal()">&times;</button>
+            <h2 id="passwordTitle">Change Password</h2>
+            <form id="passwordForm" method="POST">
+                {{ form.hidden_tag() }}
+                <input type="password" name="new_password" placeholder="New Password" required minlength="8"
+                    autocomplete="new-password">
+                <button type="submit" class="btn-primary">Change Password</button>
+                <button type="button" class="btn-secondary" onclick="closePasswordModal()">Cancel</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="deleteTitle"
+        aria-hidden="true">
+        <div class="modal-content">
+            <button class="close" aria-label="Close" onclick="closeDeleteModal()">&times;</button>
+            <h2 id="deleteTitle">Confirm Delete</h2>
+            <p id="deleteMessage"></p>
+            <form id="deleteForm" method="POST">
+                {{ form.hidden_tag() }}
+                <button type="submit" class="btn-danger">Delete Account</button>
+                <button type="button" onclick="closeDeleteModal()" class="btn-secondary">Cancel</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Simple, accessible filter
+        function searchUsers() {
+            const filter = document.getElementById('searchInput').value.toLowerCase();
+            const rows = document.getElementById('usersTableBody').getElementsByTagName('tr');
+
+            for (let i = 0; i < rows.length; i++) {
+                const cells = rows[i].getElementsByTagName('td');
+                let found = false;
+                for (let j = 0; j < cells.length - 1; j++) {
+                    if (cells[j].textContent.toLowerCase().indexOf(filter) > -1) {
+                        found = true;
+                        break;
+                    }
+                }
+                rows[i].style.display = found ? '' : 'none';
+            }
+        }
+
+        // Account type change with confirm
+        function confirmAccountTypeChange(selectEl, name) {
+            const ok = confirm(`Change account type for ${name}?`);
+            if (ok) {
+                // submit the parent form
+                selectEl.form.submit();
+            } else {
+                // revert selection by finding the originally selected option
+                selectEl.selectedIndex = [...selectEl.options].findIndex(o => o.defaultSelected);
+            }
+        }
+
+        // Keydown handler creator for modals with focus trap
+        function createKeydownHandler(modal, closeFunc) {
+            const focusables = modal.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+            if (!focusables.length) return null;
+            const first = focusables[0];
+            const last = focusables[focusables.length - 1];
+            return function (e) {
+                if (e.key === 'Tab') {
+                    if (e.shiftKey && document.activeElement === first) {
+                        e.preventDefault();
+                        last.focus();
+                    } else if (!e.shiftKey && document.activeElement === last) {
+                        e.preventDefault();
+                        first.focus();
+                    }
+                }
+                if (e.key === 'Escape') {
+                    closeFunc();
+                }
+            };
+        }
+
+        // Modal helpers with focus management
+        let lastFocused;
+        function openPasswordModal(userId, userName) {
+            lastFocused = document.activeElement;
+            const modal = document.getElementById('passwordModal');
+            const form = document.getElementById('passwordForm');
+            form.action = `/admin/change-password/${userId}`;
+            const handler = createKeydownHandler(modal, closePasswordModal);
+            if (handler) {
+                modal.keydownHandler = handler;
+                modal.addEventListener('keydown', handler);
+            }
+            modal.style.display = 'block';
+            modal.setAttribute('aria-hidden', 'false');
+            const focusables = modal.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+            if (focusables.length) {
+                focusables[0].focus();
+            }
+        }
+        function closePasswordModal() {
+            const modal = document.getElementById('passwordModal');
+            if (modal.keydownHandler) {
+                modal.removeEventListener('keydown', modal.keydownHandler);
+                delete modal.keydownHandler;
+            }
+            modal.style.display = 'none';
+            modal.setAttribute('aria-hidden', 'true');
+            if (lastFocused) lastFocused.focus();
+        }
+        function openDeleteModal(userId, userName) {
+            lastFocused = document.activeElement;
+            const modal = document.getElementById('deleteModal');
+            const form = document.getElementById('deleteForm');
+            const message = document.getElementById('deleteMessage');
+            message.textContent = `Are you sure you want to delete ${userName}'s account? This action cannot be undone.`;
+            form.action = `/admin/delete-user/${userId}`;
+            const handler = createKeydownHandler(modal, closeDeleteModal);
+            if (handler) {
+                modal.keydownHandler = handler;
+                modal.addEventListener('keydown', handler);
+            }
+            modal.style.display = 'block';
+            modal.setAttribute('aria-hidden', 'false');
+            const focusables = modal.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+            if (focusables.length) {
+                focusables[0].focus();
+            }
+        }
+        function closeDeleteModal() {
+            const modal = document.getElementById('deleteModal');
+            if (modal.keydownHandler) {
+                modal.removeEventListener('keydown', modal.keydownHandler);
+                delete modal.keydownHandler;
+            }
+            modal.style.display = 'none';
+            modal.setAttribute('aria-hidden', 'true');
+            if (lastFocused) lastFocused.focus();
+        }
+        // Dismiss on outside click
+        const passwordModal = document.getElementById('passwordModal');
+        const deleteModal = document.getElementById('deleteModal');
+        window.addEventListener('click', function (event) {
+            if (event.target === passwordModal) closePasswordModal();
+            if (event.target === deleteModal) closeDeleteModal();
+        });
+        // Auto-hide alerts after 5s
+        document.addEventListener('DOMContentLoaded', function () {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(alert => {
+                setTimeout(() => {
+                    alert.style.opacity = '0';
+                    setTimeout(() => alert.remove(), 300);
+                }, 5000);
+            });
+        });
+    </script>
+</body>
+
+</html>
